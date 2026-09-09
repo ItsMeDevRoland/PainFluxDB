@@ -10,7 +10,6 @@
 #pragma once
 #include "struct.hpp"
 
-void showAllDB();
 
 extern Database databaseContainer[DatabaseLimit];
 
