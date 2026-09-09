@@ -165,3 +165,40 @@ void UseDB(string InputOverride, string ErrorOverride, string SuccessOverride) {
     }
   }
 }
+
+bool headlessDeleteDatabase(string Name){
+    for (Database& DatabaseItem : databaseContainer){
+        if (Name == DatabaseItem.DatabaseName){
+            DatabaseItem = Database{};
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void DeleteDatabase(string InputOverride, string ErrorOverride, string SuccessOverride){
+    string DBtoDelete;
+
+    if (InputOverride.empty()){
+        cout << "Type the database You wish to delete: ";
+    } else {
+        cout << InputOverride << endl;
+    }
+    cin >> DBtoDelete;
+
+    bool DeleteOperation = headlessDeleteDatabase(DBtoDelete);
+    if (DeleteOperation){
+        if (SuccessOverride.empty()){
+            cout << "[SUCCESS] Deleted the database" << endl;
+        } else {
+            cout << SuccessOverride << endl;
+        }
+    } else {
+        if (ErrorOverride.empty()){
+            cout << "[ERROR] Failed to delete the database" << endl;
+        } else {
+            cout << ErrorOverride << endl;
+        }
+    }
+}

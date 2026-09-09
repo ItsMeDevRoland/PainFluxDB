@@ -78,6 +78,7 @@ string showHelp() {
         HELP - opens this menu
         SHOWALLDB - show all database stored within the system
         USE - use a database, REQUIRED TO MODIFY OR CREATE A NEW TABLE(CREATETB)
+        DELETEDB - delete a database you named
 
     )";
     return Help;
@@ -95,6 +96,8 @@ void HandleParser(string Input) {
       cout << Help << endl;
   } else if (Input == "USE"){
       UseDB();
+  } else if (Input == "DELETEDB"){
+      DeleteDatabase();
   };
 }
 

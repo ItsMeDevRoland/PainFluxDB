@@ -17,3 +17,4 @@ Database returnQueryADB(string Name = "");
 string returnNameQueryADB(string Name = "");
 Containers returnAllDB(string Name = "");
 void UseDB(string InputOverride = "", string ErrorOverride = "", string SuccessOverride = "");
+void DeleteDatabase(string InputOverride ="" , string ErrorOverride ="", string SuccessOverride ="");
