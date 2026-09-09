@@ -19,6 +19,8 @@
    #########
 */
 
+
+
 // IMPORTS
 #include "main.hpp"
 #include "config.hpp"
@@ -41,6 +43,10 @@ extern Database databaseContainer[DatabaseLimit];
 
 extern Containers ArrayContainer;
 
+extern Database* DatabaseSelected;
+
+
+
 
 void showAllDB() {
   cout << " || ALL DATABASE STORED ||" << endl;
@@ -53,15 +59,12 @@ void showAllDB() {
 }
 
 string showHelp() {
-
   if (EnableDevTool == false) {
     string Help = R"(
         Welcome To PainFluxDB, This is a Help Command. Its Job is to ensure and give you knowledge!
 
         HOW TO START?
         -- using showHelp() shows this Menu, and show the help to the user, Enabling the Devtool give the help of the Cli
-
-
 
     )";
     return Help;
@@ -74,6 +77,7 @@ string showHelp() {
         EXIT - exit off the CLI
         HELP - opens this menu
         SHOWALLDB - show all database stored within the system
+        USE - use a database, REQUIRED TO MODIFY OR CREATE A NEW TABLE(CREATETB)
 
     )";
     return Help;
@@ -83,12 +87,14 @@ string showHelp() {
 void HandleParser(string Input) {
 
   if (Input == "CREATEDB") {
-    CreateNewDatabase(Input);
+    CreateNewDatabase();
   } else if (Input == "SHOWALLDB") {
       showAllDB();
   } else if (Input == "HELP"){
       string Help = showHelp();
       cout << Help << endl;
+  } else if (Input == "USE"){
+      UseDB();
   };
 }
 
@@ -115,6 +121,7 @@ bool DevTool() {
   return true;
 };
 
+// Enable if you want to use the Developer CLI
 int main() {
   // Check if DevTool is true, if true enable the debugging layer
   if (EnableDevTool == true) {

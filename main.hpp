@@ -14,3 +14,7 @@
 extern Database databaseContainer[DatabaseLimit];
 
 extern Containers ArrayContainer;
+
+extern Database* DatabaseSelected;
+
+void showAllDB();

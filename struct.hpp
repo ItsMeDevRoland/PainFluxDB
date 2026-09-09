@@ -5,9 +5,12 @@
 #include <string>
 using namespace std;
 
+struct Database;
+
 struct Node {
   int col[TableRowLimit][TableColLimit];
   string table;
+  Database* DatabaseParent;
   Node *next;
 };
 
