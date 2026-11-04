@@ -38,6 +38,8 @@ struct Commands {
   string CommandAliases[MaxAliasSize];
 };
 
+// CONTAINERS, DOESNT DO WHAT IT IS SAID, i forgot what it do, but its for
+// containing something!
 struct Containers {
   int IntArray[MaxArrayContainer];
   string StringArray[MaxArrayContainer];
