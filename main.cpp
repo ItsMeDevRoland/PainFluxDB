@@ -48,15 +48,8 @@ extern Database* DatabaseSelected;
 
 
 
-void showAllDB() {
-  cout << " || ALL DATABASE STORED ||" << endl;
-
-  Containers DatabaseList = returnAllDB();
-  for (int i = 0; i < getDBSize(); i++) {
-    cout << " || " << DatabaseList.DatabaseArray[i]->DatabaseName << " ||"
-         << endl;
-  }
-}
+// NOTE: showAllDB() lives in DB.cpp so the engine can be embedded as a
+// library. See DB.hpp.
 
 string showHelp() {
   if (EnableDevTool == false) {
@@ -109,7 +102,14 @@ bool DevTool() {
   while (KillDevTool != 1) {
     cout << "Welcome to CLI of PainFlux" << endl;
     cout << "Stuck? Type 'HELP' and get help!" << endl;
-    cin >> Selection;
+
+    // Guard against EOF/failed input. Without this, "cin >> Selection"
+    // fails, Selection stays empty, and the loop spins forever printing
+    // the banner millions of times.
+    if (!(cin >> Selection)) {
+      cout << endl << "[ERROR] No more input, closing the CLI." << endl;
+      break;
+    }
 
     StandardizedSelection = standardizedString(Selection);
     if (StandardizedSelection != "EXIT") {

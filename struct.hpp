@@ -5,18 +5,32 @@
 #include <string>
 using namespace std;
 
+template <typename T> struct Column { // Column Definitions
+  string ColName;
+  T Value;
+  string Constraint;
+};
+
+struct RowContainer { // Row definition, per Row there should be 4 Column built
+                      // per dataType
+  Column<string> ColString[TableColLimit];
+  Column<bool> ColBool[TableColLimit];
+  Column<double> ColDouble[TableColLimit];
+  Column<int> ColInt[TableColLimit];
+};
+
 struct Database;
 
-struct Node {
-  int col[TableRowLimit][TableColLimit];
+struct Node { // table, This is where the linkedList is
+  RowContainer Rows[TableRowLimit];
   string table;
-  Database* DatabaseParent;
+  Database *DatabaseParent;
   Node *next;
 };
 
 struct Database {
   string DatabaseName;
-  Node TableContainer[TableLimit];
+  Node *TableHead = nullptr;
 };
 
 struct Commands {
@@ -25,8 +39,9 @@ struct Commands {
 };
 
 struct Containers {
-    int IntArray[MaxArrayContainer];
-    string StringArray[MaxArrayContainer];
-    float FloatArray[MaxArrayContainer];
-    Database* DatabaseArray[MaxArrayContainer];
+  int IntArray[MaxArrayContainer];
+  string StringArray[MaxArrayContainer];
+  float FloatArray[MaxArrayContainer];
+  Database *DatabaseArray[MaxArrayContainer];
+  int DatabaseCount; // How many DatabaseArray slots are actually filled
 };

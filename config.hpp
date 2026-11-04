@@ -15,5 +15,7 @@ const int MaxAliasSize =
         // increase it above the 5 however!
 
 const int MaxDBReturn = 10; // Max DB a Return can send
+const int MaxTableSearch = 100; //Max tables the search command can return
 
-const int MaxArrayContainer = 100; //Tells how much stack of Container we can hold, By default the system will use 10
+const int MaxArrayContainer = 100; // Tells how much stack of Container we can
+                                   // hold, By default the system will use 10

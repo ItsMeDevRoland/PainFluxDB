@@ -8,5 +8,6 @@ using namespace std;
 
 int count_Array(Database *Array, int ArrayMaximumSize);
 string standardizedString(string Text);
+void clearArrayContainer();
 
 extern Containers ArrayContainer;

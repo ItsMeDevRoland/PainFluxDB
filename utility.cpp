@@ -18,8 +18,8 @@ int count_Array(Database *Array, int ArrayMaximumSize) {
 // Standardized the string to ensure all is upper text, used for parsing and
 // lexer
 string standardizedString(string Text) {
-  for (int i = 0; i < Text.length(); i++) {
-    Text[i] = std::toupper(Text[i]);
+  for (size_t i = 0; i < Text.length(); i++) {
+    Text[i] = std::toupper(static_cast<unsigned char>(Text[i]));
   }
 
   return Text;
@@ -27,4 +27,5 @@ string standardizedString(string Text) {
 
 void clearArrayContainer(){
     ArrayContainer = {};
+    ArrayContainer.DatabaseCount = 0;
 }

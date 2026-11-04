@@ -24,15 +24,39 @@ Database *DatabaseSelected = nullptr;
 Containers ArrayContainer;
 
 // OBTAIN THE SIZE OF THE DATABASE //
+// NOTE: this returns a COUNT of used slots, it is NOT a valid write index.
+// Use findFreeDBSlot() when you need somewhere to put a new database.
 int getDBSize() {
   int DatabaseMax = count_Array(databaseContainer, DatabaseLimit);
   return DatabaseMax;
 }
 
+// FINDS THE FIRST EMPTY SLOT //
+// Arrays are not packed together, deleting a database leaves a hole.
+// So we scan for the first free slot instead of assuming count == index.
+int findFreeDBSlot() {
+  for (int slot = 0; slot < DatabaseLimit; slot++) {
+    if (databaseContainer[slot].DatabaseName.empty()) {
+      return slot;
+    }
+  }
+  return -1; // No free slot, database limit reached
+}
+
 // Creates Database w/o input system //
 bool headlessCreateNewDatabase(string name) {
-  int DatabaseSize = getDBSize();
-  databaseContainer[DatabaseSize].DatabaseName = name;
+  // Reject duplicate names, otherwise we would have two slots with the
+  // same name and only one of them could ever be found again
+  if (returnQueryADB(name) != nullptr) {
+    return false;
+  }
+
+  int FreeSlot = findFreeDBSlot();
+  if (FreeSlot == -1) {
+    return false; // Out of database slots
+  }
+
+  databaseContainer[FreeSlot].DatabaseName = name;
 
   return true;
 }
@@ -44,12 +68,16 @@ bool CreateNewDatabase(string MessageOverride) {
   // Check if the Override exist //
   if (MessageOverride.empty()) {
     cout << "Create The name of your database: ";
-    cin >> DatabaseName;
   } else {
     // If Yes, Show it instead of our Default //
     cout << MessageOverride << endl;
-    cin >> DatabaseName;
   };
+
+  // Guard against EOF/failed input
+  if (!(cin >> DatabaseName)) {
+    cout << "[ERROR] No database name given" << endl;
+    return false;
+  }
 
   // Call the headless New Database
   bool DatabaseOperation = headlessCreateNewDatabase(DatabaseName);
@@ -62,34 +90,45 @@ bool CreateNewDatabase(string MessageOverride) {
 };
 
 // Return A Query A DATABASE, returns only one and returns the DATABASE ITSELF
-Database returnQueryADB(string Name) {
-  int DatabaseSize = getDBSize();
-
+// NOTE: returns a POINTER, not a copy. A Database is 4MB, copying it around
+// would eat the stack.
+Database* returnQueryADB(string Name) {
   if (Name.empty()) {
-    return databaseContainer[0];
+    return &databaseContainer[0];
   };
 
-  for (int Database = 0; Database < DatabaseSize; Database++) {
-    if (Name == databaseContainer[Database].DatabaseName) {
-      return databaseContainer[Database];
+  // Scan the FULL range, not getDBSize(). getDBSize() is a count, so a hole
+  // left by a deleted database would hide every database behind it.
+  for (int Database = 0; Database < DatabaseLimit; Database++) {
+    if (databaseContainer[Database].DatabaseName == Name) {
+      return &databaseContainer[Database];
     }
   };
 
-  return {};
+  return nullptr;
 }
 
 // Returns A Query with ONLY NAME ONLY, not the database
 string returnNameQueryADB(string Name) {
-  Database DatabaseQueried = returnQueryADB(Name);
-  return DatabaseQueried.DatabaseName;
+  Database* DatabaseQueried = returnQueryADB(Name);
+  if (DatabaseQueried == nullptr) {
+    return "";
+  }
+  return DatabaseQueried->DatabaseName;
 }
 
 // Returns a Container of ARRAY who contains all the Queried DB name
 Containers returnAllDB(string Name) {
-  int DatabaseSize = getDBSize();
+  // Clear first, otherwise a filtered query leaves stale pointers behind
+  clearArrayContainer();
+
   int ArrayCounter = 0;
 
-  for (int Database = 0; Database < DatabaseSize; Database++) {
+  for (int Database = 0; Database < DatabaseLimit; Database++) {
+    if (databaseContainer[Database].DatabaseName.empty()) {
+      continue; // Skip the holes left by deleted databases
+    }
+
     if (Name.empty()) {
       ArrayContainer.DatabaseArray[ArrayCounter] = &databaseContainer[Database];
       ArrayCounter += 1;
@@ -105,22 +144,48 @@ Containers returnAllDB(string Name) {
     }
   }
 
+  ArrayContainer.DatabaseCount = ArrayCounter;
+
   return ArrayContainer;
 }
 
+// SHOWS EVERY DATABASE STORED IN THE ENGINE //
+// NOTE: this lives in DB.cpp, not in the CLI file, so the engine can be
+// embedded as a library without dragging its own main() along.
+void showAllDB() {
+  cout << " || ALL DATABASE STORED ||" << endl;
+
+  Containers DatabaseList = returnAllDB();
+  // Use DatabaseCount, not getDBSize(), because the container only holds the
+  // databases that actually exist
+  for (int i = 0; i < DatabaseList.DatabaseCount; i++) {
+    cout << " || " << DatabaseList.DatabaseArray[i]->DatabaseName << " ||"
+         << endl;
+  }
+}
+
 // Headless Use DB, It will place an insert without showing any texts
-void headlessUseDB(string Name) {
-  for (Database &DatabaseItem : databaseContainer) {
-    if (Name.empty()) {
-      DatabaseSelected = nullptr;
-    } else {
-      if (Name == DatabaseItem.DatabaseName) {
-        DatabaseSelected = &DatabaseItem;
-      } else {
-        continue;
-      }
+// NOTE: returns true if a database was actually selected
+bool headlessUseDB(string Name) {
+  if (Name.empty()) {
+    DatabaseSelected = nullptr;
+    return true;
+  }
+
+  for (int Database = 0; Database < DatabaseLimit; Database++) {
+    if (databaseContainer[Database].DatabaseName.empty()) {
+      continue; // Skip holes
+    }
+
+    if (Name == databaseContainer[Database].DatabaseName) {
+      DatabaseSelected = &databaseContainer[Database];
+      return true; // Stop at the first match
     }
   }
+
+  // No match, the requested database does not exist
+  DatabaseSelected = nullptr;
+  return false;
 }
 
 // Use DB, has a texts, Input Override overrides the input text, ErrorOverride
@@ -137,44 +202,71 @@ void UseDB(string InputOverride, string ErrorOverride, string SuccessOverride) {
   } else {
     cout << InputOverride << endl;
   }
-  cin >> ToUseDatabase;
 
-  for (Database &DatabaseItem : databaseContainer) {
-    if (ToUseDatabase.empty()) {
-      if (EnableDevTool) {
-        // Display Custom ERROR if it contains some
-        if (ErrorOverride.empty()) {
-          cout << "[ERROR] USE cannot have an EMPTY String Query" << endl;
-        } else {
-          cout << ErrorOverride << endl;
-        }
-      }
-      DatabaseSelected = nullptr;
-    } else {
-      if (ToUseDatabase == DatabaseItem.DatabaseName) {
-        DatabaseSelected = &DatabaseItem;
-        // Display custom Success if it contains some
-        if (SuccessOverride.empty()) {
-          cout << "[SUCCESS] Using " << DatabaseSelected->DatabaseName << endl;
-        } else {
-          cout << SuccessOverride << endl;
-        }
+  // Guard against EOF/failed input
+  if (!(cin >> ToUseDatabase)) {
+    cout << "[ERROR] No database name given" << endl;
+    DatabaseSelected = nullptr;
+    return;
+  }
+
+  if (ToUseDatabase.empty()) {
+    if (EnableDevTool) {
+      // Display Custom ERROR if it contains some
+      if (ErrorOverride.empty()) {
+        cout << "[ERROR] USE cannot have an EMPTY String Query" << endl;
       } else {
-        continue;
+        cout << ErrorOverride << endl;
+      }
+    }
+    DatabaseSelected = nullptr;
+    return;
+  }
+
+  bool Found = headlessUseDB(ToUseDatabase);
+
+  if (Found) {
+    // Display custom Success if it contains some
+    if (SuccessOverride.empty()) {
+      cout << "[SUCCESS] Using " << DatabaseSelected->DatabaseName << endl;
+    } else {
+      cout << SuccessOverride << endl;
+    }
+  } else {
+    // The old code just did "continue" and said nothing, so a typo was
+    // completely silent. Now we actually complain.
+    if (EnableDevTool) {
+      if (ErrorOverride.empty()) {
+        cout << "[ERROR] No database named " << ToUseDatabase << endl;
+      } else {
+        cout << ErrorOverride << endl;
       }
     }
   }
 }
 
-bool headlessDeleteDatabase(string Name){
-    for (Database& DatabaseItem : databaseContainer){
-        if (Name == DatabaseItem.DatabaseName){
-            DatabaseItem = Database{};
-            return true;
-        }
+bool headlessDeleteDatabase(string Name) {
+  for (int Database = 0; Database < DatabaseLimit; Database++) {
+    if (databaseContainer[Database].DatabaseName.empty()) {
+      continue; // Skip holes
     }
 
-    return false;
+    if (Name == databaseContainer[Database].DatabaseName) {
+      // NOTE: the old code did "DatabaseItem = Database{}" which copies a
+      // 4MB Database object. Just clear the name instead.
+      databaseContainer[Database].DatabaseName = "";
+
+      // If the deleted database was the selected one, drop the pointer
+      // instead of leaving it dangling at an empty slot
+      if (DatabaseSelected == &databaseContainer[Database]) {
+        DatabaseSelected = nullptr;
+      }
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void DeleteDatabase(string InputOverride, string ErrorOverride, string SuccessOverride){
@@ -185,7 +277,10 @@ void DeleteDatabase(string InputOverride, string ErrorOverride, string SuccessOv
     } else {
         cout << InputOverride << endl;
     }
-    cin >> DBtoDelete;
+    if (!(cin >> DBtoDelete)) {
+        cout << "[ERROR] No database name given" << endl;
+        return;
+    }
 
     bool DeleteOperation = headlessDeleteDatabase(DBtoDelete);
     if (DeleteOperation){
