@@ -1,18 +1,9 @@
 // THIS IS THE TABLE FUNCTIONS, DO NOT TOUCH, THIS HAS NO CONFIGS, VISIT
 // CONFIG.HPP FOR CONFIGURATION
 #include "struct.hpp"
-#include <cstddef>
 #include <iostream>
 #include <string>
 using namespace std;
-
-Database *CreateDatabase(string name) { // Creating a new database for the
-                                        // engine
-  Database *db = new Database;
-  db->DatabaseName = name;
-
-  return db;
-}
 
 bool CreateTable(Database *db, string tableName) {
 

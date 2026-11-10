@@ -92,7 +92,7 @@ bool CreateNewDatabase(string MessageOverride) {
 // Return A Query A DATABASE, returns only one and returns the DATABASE ITSELF
 // NOTE: returns a POINTER, not a copy. A Database is 4MB, copying it around
 // would eat the stack.
-Database* returnQueryADB(string Name) {
+Database *returnQueryADB(string Name) {
   if (Name.empty()) {
     return &databaseContainer[0];
   };
@@ -110,7 +110,7 @@ Database* returnQueryADB(string Name) {
 
 // Returns A Query with ONLY NAME ONLY, not the database
 string returnNameQueryADB(string Name) {
-  Database* DatabaseQueried = returnQueryADB(Name);
+  Database *DatabaseQueried = returnQueryADB(Name);
   if (DatabaseQueried == nullptr) {
     return "";
   }
@@ -269,31 +269,32 @@ bool headlessDeleteDatabase(string Name) {
   return false;
 }
 
-void DeleteDatabase(string InputOverride, string ErrorOverride, string SuccessOverride){
-    string DBtoDelete;
+void DeleteDatabase(string InputOverride, string ErrorOverride,
+                    string SuccessOverride) {
+  string DBtoDelete;
 
-    if (InputOverride.empty()){
-        cout << "Type the database You wish to delete: ";
-    } else {
-        cout << InputOverride << endl;
-    }
-    if (!(cin >> DBtoDelete)) {
-        cout << "[ERROR] No database name given" << endl;
-        return;
-    }
+  if (InputOverride.empty()) {
+    cout << "Type the database You wish to delete: ";
+  } else {
+    cout << InputOverride << endl;
+  }
+  if (!(cin >> DBtoDelete)) {
+    cout << "[ERROR] No database name given" << endl;
+    return;
+  }
 
-    bool DeleteOperation = headlessDeleteDatabase(DBtoDelete);
-    if (DeleteOperation){
-        if (SuccessOverride.empty()){
-            cout << "[SUCCESS] Deleted the database" << endl;
-        } else {
-            cout << SuccessOverride << endl;
-        }
+  bool DeleteOperation = headlessDeleteDatabase(DBtoDelete);
+  if (DeleteOperation) {
+    if (SuccessOverride.empty()) {
+      cout << "[SUCCESS] Deleted the database" << endl;
     } else {
-        if (ErrorOverride.empty()){
-            cout << "[ERROR] Failed to delete the database" << endl;
-        } else {
-            cout << ErrorOverride << endl;
-        }
+      cout << SuccessOverride << endl;
     }
+  } else {
+    if (ErrorOverride.empty()) {
+      cout << "[ERROR] Failed to delete the database" << endl;
+    } else {
+      cout << ErrorOverride << endl;
+    }
+  }
 }

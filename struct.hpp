@@ -13,10 +13,10 @@ template <typename T> struct Column { // Column Definitions
 
 struct RowContainer { // Row definition, per Row there should be 4 Column built
                       // per dataType
-  Column<string> ColString[TableColLimit];
-  Column<bool> ColBool[TableColLimit];
-  Column<double> ColDouble[TableColLimit];
-  Column<int> ColInt[TableColLimit];
+  Column<string> ColString[TableRowLimit][TableColLimit];
+  Column<bool> ColBool[TableRowLimit][TableColLimit];
+  Column<double> ColDouble[TableRowLimit][TableColLimit];
+  Column<int> ColInt[TableRowLimit][TableColLimit];
 };
 
 struct Database;
