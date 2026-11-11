@@ -1,6 +1,6 @@
-// Welcome to PainFluxDB, the embeddable databaseengine led by
+// Welcome to PainFluxDB, the embeddable database engine led by
 // Roland Sibal, {INSERT NAME FOR CONTRIBUTORS}
-// Don't ask all the decision made by us when we made the engine
+// Don't ask about the decisions made by us when we made the engine
 /*
          ################
         #####################
@@ -9,7 +9,7 @@
        ###------      #########
        ###------      #########
       ###*-------------########
-      ###--------------########                 PainFluxDB - Ver. 0.0.1
+      ###--------------########                 PainFluxDB - Ver. 0.1.0
       ###-------------#######                 LICENSED UNDER APACHE 2.0
      ###=-----+#############              Made for sir Exekiel, Data Structure
      ###------##########
@@ -19,37 +19,29 @@
    #########
 */
 
+// This file is a DEVELOPMENT HARNESS. The real program is built by the
+// application team on top of the engine headers. Keep it small and disposable.
 
-
-// IMPORTS
-#include "main.hpp"
-#include "config.hpp"
-#include "struct.hpp"
-#include "utility.hpp"
 #include "DB.hpp"
+#include "Row.hpp"
+#include "config.hpp"
+#include "main.hpp"
+#include "search.hpp"
+#include "sort.hpp"
+#include "stack.hpp"
+#include "queue.hpp"
+#include "stats.hpp"
+#include "struct.hpp"
+#include "table.hpp"
+#include "utility.hpp"
 
 #include <iostream>
 #include <string>
 using namespace std;
 
-// DO NOT MOVE DOWN UNLESS YOU KNOW WHAT YOU'RE DOING!
-// If you're invoking a function, use the available and adviced function above!
-// WARNING: ALL TABLES AND NOTES HAVE A 100 LIMIT... MODIFY THE LIMITS AT THE
-// CONFIG.HPP!
-
-
-
 extern Database databaseContainer[DatabaseLimit];
-
 extern Containers ArrayContainer;
-
-extern Database* DatabaseSelected;
-
-
-
-
-// NOTE: showAllDB() lives in DB.cpp so the engine can be embedded as a
-// library. See DB.hpp.
+extern Database *DatabaseSelected;
 
 string showHelp() {
   if (EnableDevTool == false) {
@@ -66,7 +58,7 @@ string showHelp() {
     string Help = R"(
         Welcome To PainFluxDB CLI, This is the DevTool CLI help, below are the Calls you can do within the CLI provided:
 
-        CREATEDB - creates a new database,
+        CREATEDB - creates a new database
         EXIT - exit off the CLI
         HELP - opens this menu
         SHOWALLDB - show all database stored within the system
@@ -83,14 +75,14 @@ void HandleParser(string Input) {
   if (Input == "CREATEDB") {
     CreateNewDatabase();
   } else if (Input == "SHOWALLDB") {
-      showAllDB();
-  } else if (Input == "HELP"){
-      string Help = showHelp();
-      cout << Help << endl;
-  } else if (Input == "USE"){
-      UseDB();
-  } else if (Input == "DELETEDB"){
-      DeleteDatabase();
+    showAllDB();
+  } else if (Input == "HELP") {
+    string Help = showHelp();
+    cout << Help << endl;
+  } else if (Input == "USE") {
+    UseDB();
+  } else if (Input == "DELETEDB") {
+    DeleteDatabase();
   };
 }
 

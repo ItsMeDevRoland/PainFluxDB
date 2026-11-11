@@ -1,5 +1,6 @@
 // THIS IS THE TABLE FUNCTIONS, DO NOT TOUCH, THIS HAS NO CONFIGS, VISIT
 // CONFIG.HPP FOR CONFIGURATION
+#include "table.hpp"
 #include "struct.hpp"
 #include <iostream>
 #include <string>
@@ -8,6 +9,11 @@ using namespace std;
 bool CreateTable(Database *db, string tableName) {
 
   if (db == nullptr) {
+    return false;
+  }
+
+  // Refuse duplicates so SearchTable always has exactly one answer.
+  if (SearchTable(db, tableName) != nullptr) {
     return false;
   }
 
@@ -31,7 +37,7 @@ bool CreateTable(Database *db, string tableName) {
   return true;
 }
 
-void DisplayTables(Database *db, bool EnablePFdbDefaults = true) {
+void DisplayTables(Database *db, bool EnablePFdbDefaults) {
 
   if (db == nullptr) {
     return;
@@ -44,10 +50,10 @@ void DisplayTables(Database *db, bool EnablePFdbDefaults = true) {
   } else {
     Node *Current = db->TableHead;
     cout << "TABLES: " << endl;
-    do {
-      cout << Current->table;
+    while (Current != nullptr) {
+      cout << Current->table << " (" << Current->RowCount << " rows)" << endl;
       Current = Current->next;
-    } while (Current != nullptr);
+    }
   }
 }
 
@@ -58,18 +64,14 @@ Node *SearchTable(Database *db, string tableName) {
   }
 
   Node *Current = db->TableHead;
-  do {
-    if (Current == nullptr) {
-      return nullptr;
-    }
-
+  while (Current != nullptr) {
     if (tableName == Current->table) {
-      break;
-    };
+      return Current;
+    }
     Current = Current->next;
-  } while (Current != nullptr);
+  }
 
-  return Current;
+  return nullptr;
 };
 
 bool DeleteTable(Database *db, string tableNameToDelete) {
@@ -103,6 +105,32 @@ bool DeleteTable(Database *db, string tableNameToDelete) {
     } else {
       TablePrevContainer->next = Table->next;
     }
+
+    // The table owns rows, stack nodes and queue nodes. Free all three before
+    // the table itself, otherwise deleting a table leaks every record in it.
+    Row *row = Table->RowHead;
+    while (row != nullptr) {
+      Row *nextRow = row->next;
+      delete row;
+      row = nextRow;
+    }
+
+    StackNode *stackNode = Table->StackTop;
+    while (stackNode != nullptr) {
+      StackNode *nextStack = stackNode->next;
+      delete stackNode->row; // stack owns rows it removed from the table
+      delete stackNode;
+      stackNode = nextStack;
+    }
+
+    QueueNode *queueNode = Table->QueueFront;
+    while (queueNode != nullptr) {
+      QueueNode *nextQueue = queueNode->next;
+      // The queue only borrows rows; they are freed with the row chain above.
+      delete queueNode;
+      queueNode = nextQueue;
+    }
+
     delete Table;
     return true;
   };
@@ -128,4 +156,37 @@ bool DropDatabase(Database *db) {
   DeleteTableRecursv(db);
   delete db;
   return true;
+}
+
+bool AddColumn(Node *table, string columnName, ColumnType type) {
+  if (table == nullptr) {
+    return false;
+  }
+
+  if (table->ColumnCount >= TableColLimit) {
+    return false;
+  }
+
+  // Duplicate column names would make FindColumn ambiguous.
+  if (FindColumn(table, columnName) != -1) {
+    return false;
+  }
+
+  table->Columns[table->ColumnCount].ColName = columnName;
+  table->Columns[table->ColumnCount].Type = type;
+  table->ColumnCount += 1;
+  return true;
+}
+
+int FindColumn(Node *table, string columnName) {
+  if (table == nullptr) {
+    return -1;
+  }
+
+  for (int i = 0; i < table->ColumnCount; i++) {
+    if (table->Columns[i].ColName == columnName) {
+      return i;
+    }
+  }
+  return -1;
 }

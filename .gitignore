@@ -1,0 +1,37 @@
+# Build artifacts
+*.o
+*.obj
+*.out
+*.exe
+a.out
+*.dSYM/
+/main
+/pfdb
+/pfdb_build
+/example_app
+/test
+/ftest
+/pfdb_test
+/pfdb_ftest
+/pfdb_asan
+/exapp_check
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Local scratch
+scratch/
+*.tmp
+*.log
+
+# Agent / internal working notes (never submitted)
+AGENTS.md
+AGENTS.md-PAID
+CLAUDE.md
+.opencode/
+.hermes/
+.claude/

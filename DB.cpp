@@ -11,6 +11,7 @@
 #include "config.hpp"
 #include "main.hpp"
 #include "struct.hpp"
+#include "table.hpp"
 #include "utility.hpp"
 #include <iostream>
 #include <string>
@@ -252,8 +253,10 @@ bool headlessDeleteDatabase(string Name) {
     }
 
     if (Name == databaseContainer[Database].DatabaseName) {
-      // NOTE: the old code did "DatabaseItem = Database{}" which copies a
-      // 4MB Database object. Just clear the name instead.
+      // Free the table chain first. Clearing only the name would leave
+      // TableHead pointing at live nodes, so a reused slot would inherit the
+      // old database's tables.
+      DeleteTableRecursv(&databaseContainer[Database]);
       databaseContainer[Database].DatabaseName = "";
 
       // If the deleted database was the selected one, drop the pointer
