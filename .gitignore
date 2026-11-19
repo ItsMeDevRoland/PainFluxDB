@@ -28,6 +28,10 @@ scratch/
 *.tmp
 *.log
 
+# Personal reporting notes (never submitted)
+ReportingBasicExplanation.md
+ReportingBasicExplanation.pdf
+
 # Agent / internal working notes (never submitted)
 AGENTS.md
 AGENTS.md-PAID
